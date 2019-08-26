@@ -1,0 +1,17 @@
+# osx
+.DS_Store
+
+# doxygen
+Doxyfile*
+doxygen_sqlite3.db
+html
+*.tmp
+
+# arduino build
+*.elf
+*.hex
+*.d
+*.o
+
+# exclude local testing environment
+examples/SSTuino_Testing

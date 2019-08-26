@@ -1,0 +1,52 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build Library",
+            "type": "shell",
+            "command": "~/bin/arduino-cli compile -v -b arduino:avr:uno src/SSTuino_Companion.ino",
+            "group": "build",
+            "isBackground": false,
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Reinstall Library",
+            "type": "shell",
+            "command": "~/bin/arduino-cli lib uninstall SSTuino_Companion && rsync -av $PWD ~/Documents/Arduino/libraries/",
+            "group": "build",
+            "isBackground": false,
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Run Test Program",
+            "type": "shell",
+            "command": "~/bin/arduino-cli compile -v -b arduino:avr:uno examples/SSTuino_Testing && ~/bin/arduino-cli upload -v -b arduino:avr:uno -p /dev/cu.SLAB_USBtoUART examples/SSTuino_Testing",
+            "group": "build",
+            "isBackground": false,
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true
+            },
+            "problemMatcher": []
+        }
+    ]
+}
