@@ -65,6 +65,9 @@ public:
     void connectToWifi(String ssid, String password);
     Status getWifiStatus();
     void disconnectWifi();
+
+    // Network functionality
+    String getIP();
 //     int16_t beginDeepSleep(uint16_t sleepTime, bool blocking);
 
 //     int16_t setWiFiMode(WiFiMode mode);

@@ -77,16 +77,16 @@ const char MQTTPUBLISH[] PROGMEM = "mpb";
 
 /******************************************************************************
  * Constructor                                                                *
- ******************************************************************************/
+ *****************************************************************************/
 
 SSTuino::SSTuino() : _ESP01UART(2, 4) {
 }
 
 /******************************************************************************
  * Public functions                                                           *
- ******************************************************************************/
+ *****************************************************************************/
 
-#pragma mark - Basic functions
+/* ---------------------------- Basic functions ---------------------------- */
 
 /*!
  * @brief Opens the serial link from the SSTuino to the ESP-01 module
@@ -113,6 +113,7 @@ void SSTuino::slowOpenLink(int delayTime=5000) {
  * @return true if the test is successful and false if the test times out
  */
 bool SSTuino::smokeTest() {
+    rx_empty();
     writeCommandFromPROGMEM(NOOPERATION);
     int16_t result = wait("\r\n", 1000);
     if (result == 0) return true;
@@ -120,24 +121,28 @@ bool SSTuino::smokeTest() {
 }
 
 String SSTuino::getVersion() {
+    rx_empty();
     writeCommandFromPROGMEM(VERSION);
     return recvString(F("\r\n"), 1000, 16);
 }
 
 
-#pragma mark - Wifi functions
+/* ---------------------------- Wi-Fi functions ---------------------------- */
 
 String SSTuino::getWifiHotspots() {
+    rx_empty();
     writeCommandFromPROGMEM(LISTAP);
     return recvString(F("\r\n"), 10000, 64);
 }
 
 bool SSTuino::wifiInRange(String ssid) {
+    rx_empty();
     writeCommandFromPROGMEM(LISTAP);
     return recvFind(ssid, 10000, 64);
 }
 
 void SSTuino::connectToWifi(String ssid, String password) {
+    rx_empty();
     writeCommandFromPROGMEM(CONNECTAP);
     _ESP01UART.print(ssid);
     writeCommandFromPROGMEM(DELIMITER);
@@ -146,6 +151,7 @@ void SSTuino::connectToWifi(String ssid, String password) {
 }
 
 Status SSTuino::getWifiStatus() {
+    rx_empty();
     writeCommandFromPROGMEM(STATUSAP);
     int16_t result = wait("S;U;P;N", 1000);
     if (result < 0) return UNSUCCESSFUL;
@@ -153,18 +159,27 @@ Status SSTuino::getWifiStatus() {
 }
 
 void SSTuino::disconnectWifi() {
+    rx_empty();
     writeCommandFromPROGMEM(DISCONNECTAP);
+}
+
+/* --------------------------- Network functions --------------------------- */
+
+String SSTuino::getIP() {
+    rx_empty();
+    writeCommandFromPROGMEM(GETIP);
+    return recvString(F("\r\n"), 1000, 20);
 }
 
 /******************************************************************************
  * Private functions                                                          *
- ******************************************************************************/
+ *****************************************************************************/
 
 
 
 /******************************************************************************
- * Helper functions                                                          *
- ******************************************************************************/
+ * Helper functions                                                           *
+ *****************************************************************************/
 
 /*!
  * @brief Flushes serial receive buffer to ensure no characters remaining in the buffer
