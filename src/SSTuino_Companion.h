@@ -61,8 +61,8 @@ public:
 
     // Wi-fi functionality
     String getWifiHotspots();
-    bool wifiInRange(String ssid);
-    void connectToWifi(String ssid, String password);
+    bool wifiInRange(const String& ssid);
+    void connectToWifi(const String& ssid, const String& password);
     Status getWifiStatus();
     void disconnectWifi();
 

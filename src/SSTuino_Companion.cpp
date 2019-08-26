@@ -135,13 +135,13 @@ String SSTuino::getWifiHotspots() {
     return recvString(F("\r\n"), 10000, 64);
 }
 
-bool SSTuino::wifiInRange(String ssid) {
+bool SSTuino::wifiInRange(const String& ssid) {
     rx_empty();
     writeCommandFromPROGMEM(LISTAP);
     return recvFind(ssid, 10000, 64);
 }
 
-void SSTuino::connectToWifi(String ssid, String password) {
+void SSTuino::connectToWifi(const String& ssid, const String& password) {
     rx_empty();
     writeCommandFromPROGMEM(CONNECTAP);
     _ESP01UART.print(ssid);
@@ -168,7 +168,7 @@ void SSTuino::disconnectWifi() {
 String SSTuino::getIP() {
     rx_empty();
     writeCommandFromPROGMEM(GETIP);
-    return recvString(F("\r\n"), 1000, 20);
+    return recvString(F("\r\n"), 1000, 32);
 }
 
 /******************************************************************************
