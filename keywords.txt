@@ -6,19 +6,34 @@
 # Datatypes (KEYWORD1)
 ###########################################
 
-DHT	KEYWORD1
+SSTuino	KEYWORD1
 
 ###########################################
 # Methods and Functions (KEYWORD2)
 ###########################################
 
-begin	KEYWORD2
-readTemperature	KEYWORD2
-convertCtoF	KEYWORD2
-convertFtoC	KEYWORD2
-computeHeatIndex	KEYWORD2
-readHumidity	KEYWORD2
-read	KEYWORD2
+openLink	KEYWORD2
+slowOpenLink	KEYWORD2
+smokeTest	KEYWORD2
+getVersion	KEYWORD2
+reset	KEYWORD2
+
+getWifiHotspots	KEYWORD2
+wifiInRange	KEYWORD2
+connectToWifi	KEYWORD2
+getWifiStatus	KEYWORD2
+disconnectWifi	KEYWORD2
+
+getIP	KEYWORD2
+
+setupHTTP	KEYWORD2
+setHTTPPOSTParameters	KEYWORD2
+setHTTPHeaders	KEYWORD2
+transmitHTTP	KEYWORD2
+getHTTPProgress	KEYWORD2
+getHTTPStatusCode	KEYWORD2
+getHTTPReply	KEYWORD2
+deleteHTTPReply	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
