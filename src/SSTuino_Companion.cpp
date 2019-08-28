@@ -40,7 +40,7 @@
  */
 
 #pragma mark Basic constant strings
-const char NEWLINE[] PROGMEM = "\r\n";
+const char NEWLINE[] = "\r\n";              // Newline is not in PROGMEM due to frequent use
 const char DELIMITER[] PROGMEM = "\x1f";
 
 #pragma mark Basic commands
@@ -58,13 +58,13 @@ const char DISCONNECTAP[] PROGMEM = "dap\r\n";
 const char GETIP[] PROGMEM = "gip\r\n";
 
 #pragma mark HTTP commands
-const char INITHTTP[] PROGMEM = "ihr";
-const char POSTPARAMSHTTP[] PROGMEM = "phr";
-const char HEADERSHTTP[] PROGMEM = "hhr";
-const char TRANSMITHTTP[] PROGMEM = "thr";
-const char STATUSHTTP[] PROGMEM = "shr";
-const char GETRESPONSEHTTP[] PROGMEM = "ghr";
-const char DELETERESPONSEHTTP[] PROGMEM = "dhr";
+const char INITHTTP[] PROGMEM = "ihr ";
+const char POSTPARAMSHTTP[] PROGMEM = "phr ";
+const char HEADERSHTTP[] PROGMEM = "hhr ";
+const char TRANSMITHTTP[] PROGMEM = "thr ";
+const char STATUSHTTP[] PROGMEM = "shr ";
+const char GETRESPONSEHTTP[] PROGMEM = "ghr ";
+const char DELETERESPONSEHTTP[] PROGMEM = "dhr ";
 
 #pragma mark MQTT commands
 const char MQTTCONFIGURE[] PROGMEM = "mcg";
@@ -147,7 +147,7 @@ void SSTuino::connectToWifi(const String& ssid, const String& password) {
     _ESP01UART.print(ssid);
     writeCommandFromPROGMEM(DELIMITER);
     _ESP01UART.print(password);
-    writeCommandFromPROGMEM(NEWLINE);
+    _ESP01UART.print(NEWLINE);
 }
 
 Status SSTuino::getWifiStatus() {
@@ -170,6 +170,92 @@ String SSTuino::getIP() {
     writeCommandFromPROGMEM(GETIP);
     return recvString(F("\r\n"), 1000, 32);
 }
+
+/* ---------------------------- HTTP operations ---------------------------- */
+
+int SSTuino::setupHTTP(HTTP_Operation op, const String& url) {
+    rx_empty();
+    writeCommandFromPROGMEM(INITHTTP);
+    _ESP01UART.print((char)op);
+    writeCommandFromPROGMEM(DELIMITER);
+    _ESP01UART.print(url);
+    _ESP01UART.print(NEWLINE);
+    String data = recvString(F("\r\n"), 1000, 8);
+    if (data.charAt(0) == 'U') return -1; // -1 indicates that the function failed
+    //TODO: can consider performing robust validation for whether it is an integer
+    return data.toInt();
+}
+
+bool SSTuino::setHTTPPOSTParameters(int handle, const String& data) {
+    rx_empty();
+    writeCommandFromPROGMEM(POSTPARAMSHTTP);
+    _ESP01UART.print(handle);
+    writeCommandFromPROGMEM(DELIMITER);
+    _ESP01UART.print(data);
+    _ESP01UART.print(NEWLINE);
+    int16_t result = wait("S;U;short;long", 1000);
+    if (result == 0) return true;
+    else return false;
+}
+
+bool SSTuino::transmitHTTP(int handle) {
+    rx_empty();
+    writeCommandFromPROGMEM(TRANSMITHTTP);
+    _ESP01UART.print(handle);
+    _ESP01UART.print(NEWLINE);
+    int16_t result = wait("S;U;short;long", 1000);
+    if (result == 0) return true;
+    else return false;
+}
+
+Status SSTuino::getHTTPProgress(int handle) {
+    rx_empty();
+    writeCommandFromPROGMEM(STATUSHTTP);
+    _ESP01UART.print(handle);
+    _ESP01UART.print(NEWLINE);
+    int16_t result = wait("S;U;P;N", 1000);
+    if (result < 0) return UNSUCCESSFUL;
+    return (Status)result;
+}
+
+/* ------------------------------------------------------------------------- */
+
+int SSTuino::getHTTPStatusCode(int handle) {
+    rx_empty();
+    writeCommandFromPROGMEM(GETRESPONSEHTTP);
+    _ESP01UART.print(handle);
+    writeCommandFromPROGMEM(DELIMITER);
+    _ESP01UART.print('S');
+    writeCommandFromPROGMEM(DELIMITER);
+    _ESP01UART.print('F');
+    _ESP01UART.print(NEWLINE);
+    String data = recvString(F("\r\n"), 1000, 8);
+    if (data.charAt(0) == 'U') return -1; // -1 indicates that the function failed
+    //TODO: can consider performing robust validation for whether it is an integer
+    return data.toInt();
+}
+
+String SSTuino::getHTTPReply(int handle, HTTP_Content field, bool deleteReply) {
+    rx_empty();
+    writeCommandFromPROGMEM(GETRESPONSEHTTP);
+    _ESP01UART.print(handle);
+    writeCommandFromPROGMEM(DELIMITER);
+    if (field == HEADERS) _ESP01UART.print('H');
+    if (field == CONTENT) _ESP01UART.print('C');
+    writeCommandFromPROGMEM(DELIMITER);
+    deleteReply ? _ESP01UART.print('T') : _ESP01UART.print('F');
+    _ESP01UART.print(NEWLINE);
+    return recvString(F("\r\n"), 2000, 64);
+}
+
+bool SSTuino::deleteHTTPReply(int handle) {
+    rx_empty();
+    writeCommandFromPROGMEM(DELETERESPONSEHTTP);
+    _ESP01UART.print(handle);
+    _ESP01UART.print(NEWLINE);
+}
+
+/* ------------------------------------------------------------------------- */
 
 /******************************************************************************
  * Private functions                                                          *
@@ -226,8 +312,8 @@ bool SSTuino::recvFind(String target, uint32_t timeout, uint8_t reserve=8)
  *
  * @param text The constant from PROGMEM to write to the ESP8266 module
  */
-void SSTuino::writeCommandFromPROGMEM(const char* text) {
-    char buf[8] = {'\0'};           // WARNING: THIS BUFFER ONLY GOES UP TO 8 CHARS!
+void SSTuino::writeCommandFromPROGMEM(const char* text, int buffersize=8) {
+    char buf[buffersize] = {'\0'};           // WARNING: THIS BUFFER ONLY GOES UP TO 8 CHARS!
     strcpy_P(buf, (char *) text);
     _ESP01UART.print(buf);
 }

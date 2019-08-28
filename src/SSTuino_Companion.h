@@ -39,8 +39,13 @@ enum Status {
 };
 
 enum HTTP_Operation {
-    GET,
-    POST
+    GET = 'G',
+    POST = 'P'
+};
+
+enum HTTP_Content {
+    CONTENT,
+    HEADERS
 };
 
 /*
@@ -50,7 +55,7 @@ enum HTTP_Operation {
 class SSTuino {
 public:
     SSTuino();
-    void rawInput(String input);
+    // void rawInput(String input);
     void openLink();
     void slowOpenLink(int delayTime=5000);
 
@@ -68,13 +73,20 @@ public:
 
     // Network functionality
     String getIP();
+
+    // HTTP operations
+    int setupHTTP(HTTP_Operation op, const String& url);
+    bool setHTTPPOSTParameters(int handle, const String& data);
+    bool setHTTPHeaders(int handle, const String& data);
+    bool transmitHTTP(int handle);
+
+    Status getHTTPProgress(int handle);
+
+    int getHTTPStatusCode(int handle);
+    String getHTTPReply(int handle, HTTP_Content field, bool deleteReply);
+    bool deleteHTTPReply(int handle);
 //     int16_t beginDeepSleep(uint16_t sleepTime, bool blocking);
 
-//     int16_t setWiFiMode(WiFiMode mode);
-//     int16_t listAP();
-//     int16_t joinAP(String ssid, String password);
-//     int16_t disconnectAP();
-//     int16_t getLocalIP();
 //     int16_t setDHCPEnabled(bool enabled);
 //     int16_t setStationName(String& name);
 //     int16_t setSoftAPSettings(String& ssid, String& password, uint8_t channel, EncryptionMethod encryptionMethod);
@@ -83,7 +95,7 @@ public:
     int16_t wait(char* values, uint16_t timeOut);
 private:
     SoftwareSerial _ESP01UART;
-    void writeCommandFromPROGMEM(const char* text);
+    void writeCommandFromPROGMEM(const char* text, int buffersize=8);
     int16_t waitNoOutput(char* values, uint16_t timeOut);
     void rx_empty(void);
     bool recvFind(String target, uint32_t timeout, uint8_t reserve=8);
