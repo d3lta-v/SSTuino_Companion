@@ -123,7 +123,7 @@ bool SSTuino::smokeTest() {
 String SSTuino::getVersion() {
     rx_empty();
     writeCommandFromPROGMEM(VERSION);
-    return recvString(F("\r\n"), 1000, 16);
+    return recvString(NEWLINE, 1000, 16);
 }
 
 
@@ -132,7 +132,7 @@ String SSTuino::getVersion() {
 String SSTuino::getWifiHotspots() {
     rx_empty();
     writeCommandFromPROGMEM(LISTAP);
-    return recvString(F("\r\n"), 10000, 64);
+    return recvString(NEWLINE, 10000, 64);
 }
 
 bool SSTuino::wifiInRange(const String& ssid) {
@@ -168,7 +168,7 @@ void SSTuino::disconnectWifi() {
 String SSTuino::getIP() {
     rx_empty();
     writeCommandFromPROGMEM(GETIP);
-    return recvString(F("\r\n"), 1000, 32);
+    return recvString(NEWLINE, 1000, 32);
 }
 
 /* ---------------------------- HTTP operations ---------------------------- */
@@ -180,7 +180,7 @@ int SSTuino::setupHTTP(HTTP_Operation op, const String& url) {
     writeCommandFromPROGMEM(DELIMITER);
     _ESP01UART.print(url);
     _ESP01UART.print(NEWLINE);
-    String data = recvString(F("\r\n"), 1000, 8);
+    String data = recvString(NEWLINE, 1000, 8);
     if (data.charAt(0) == 'U') return -1; // -1 indicates that the function failed
     //TODO: can consider performing robust validation for whether it is an integer
     return data.toInt();
@@ -189,6 +189,18 @@ int SSTuino::setupHTTP(HTTP_Operation op, const String& url) {
 bool SSTuino::setHTTPPOSTParameters(int handle, const String& data) {
     rx_empty();
     writeCommandFromPROGMEM(POSTPARAMSHTTP);
+    _ESP01UART.print(handle);
+    writeCommandFromPROGMEM(DELIMITER);
+    _ESP01UART.print(data);
+    _ESP01UART.print(NEWLINE);
+    int16_t result = wait("S;U;short;long", 1000);
+    if (result == 0) return true;
+    else return false;
+}
+
+bool SSTuino::setHTTPHeaders(int handle, const String& data) {
+    rx_empty();
+    writeCommandFromPROGMEM(HEADERSHTTP);
     _ESP01UART.print(handle);
     writeCommandFromPROGMEM(DELIMITER);
     _ESP01UART.print(data);
@@ -209,13 +221,26 @@ bool SSTuino::transmitHTTP(int handle) {
 }
 
 Status SSTuino::getHTTPProgress(int handle) {
+    // WARNING: commands may not respond when ESP8266 CPU is overloaded such as during cryptographic operations!
+    // potential 1202
     rx_empty();
     writeCommandFromPROGMEM(STATUSHTTP);
     _ESP01UART.print(handle);
     _ESP01UART.print(NEWLINE);
     int16_t result = wait("S;U;P;N", 1000);
-    if (result < 0) return UNSUCCESSFUL;
-    return (Status)result;
+    switch (result)
+    {
+    case 0:
+        return SUCCESSFUL;
+    case 1:
+        return UNSUCCESSFUL;
+    case 2:
+        return IN_PROGRESS;
+    case 3:
+        return NOT_ATTEMPTED;
+    default:
+        return UNSUCCESSFUL;
+    }
 }
 
 /* ------------------------------------------------------------------------- */
@@ -261,11 +286,7 @@ bool SSTuino::deleteHTTPReply(int handle) {
  * Private functions                                                          *
  *****************************************************************************/
 
-
-
-/******************************************************************************
- * Helper functions                                                           *
- *****************************************************************************/
+/* --------------------------- Helper  functions --------------------------- */
 
 /*!
  * @brief Flushes serial receive buffer to ensure no characters remaining in the buffer
