@@ -39,25 +39,25 @@
  * Constants stored in program memory
  */
 
-#pragma mark Basic constant strings
+// Basic constant strings
 const char NEWLINE[] = "\r\n";              // Newline is not in PROGMEM due to frequent use
 const char DELIMITER[] PROGMEM = "\x1f";
 
-#pragma mark Basic commands
+// Basic commands
 const char NOOPERATION[] PROGMEM = "nop\r\n";
 const char VERSION[] PROGMEM = "ver\r\n";
 const char RESET[] PROGMEM = "rst\r\n";
 
-#pragma mark Wi-Fi commands
+// Wi-Fi commands
 const char CONNECTAP[] PROGMEM = "cap ";
 const char LISTAP[] PROGMEM = "lap\r\n";
 const char STATUSAP[] PROGMEM = "sap\r\n";
 const char DISCONNECTAP[] PROGMEM = "dap\r\n";
 
-#pragma mark Networking commands
+// Networking commands
 const char GETIP[] PROGMEM = "gip\r\n";
 
-#pragma mark HTTP commands
+// HTTP commands
 const char INITHTTP[] PROGMEM = "ihr ";
 const char POSTPARAMSHTTP[] PROGMEM = "phr ";
 const char HEADERSHTTP[] PROGMEM = "hhr ";
@@ -66,14 +66,14 @@ const char STATUSHTTP[] PROGMEM = "shr ";
 const char GETRESPONSEHTTP[] PROGMEM = "ghr ";
 const char DELETERESPONSEHTTP[] PROGMEM = "dhr ";
 
-#pragma mark MQTT commands
-const char MQTTCONFIGURE[] PROGMEM = "mcg";
-const char MQTTISCONNECTED[] PROGMEM = "mic";
-const char MQTTSUB[] PROGMEM = "msb";
-const char MQTTUNSUB[] PROGMEM = "mus";
-const char MQTTNEWDATA[] PROGMEM = "mnd";
-const char MQTTGETSUBDATA[] PROGMEM = "mgs";
-const char MQTTPUBLISH[] PROGMEM = "mpb";
+// MQTT commands
+const char MQTTCONFIGURE[] PROGMEM = "mcg ";
+const char MQTTISCONNECTED[] PROGMEM = "mic\r\n";
+const char MQTTSUB[] PROGMEM = "msb ";
+const char MQTTUNSUB[] PROGMEM = "mus ";\
+const char MQTTNEWDATA[] PROGMEM = "mnd ";
+const char MQTTGETSUBDATA[] PROGMEM = "mgs ";
+const char MQTTPUBLISH[] PROGMEM = "mpb ";
 
 /******************************************************************************
  * Constructor                                                                *
@@ -101,7 +101,7 @@ void SSTuino::openLink() {
  *
  * @param delayTime The time to wait before opening the serial port. Defaults to 5 seconds.
  */
-void SSTuino::slowOpenLink(int delayTime=5000) {
+void SSTuino::slowOpenLink(int delayTime /* =5000 */) {
     delay(delayTime);
     _ESP01UART.begin(9600);
     rx_empty();
@@ -278,6 +278,9 @@ bool SSTuino::deleteHTTPReply(int handle) {
     writeCommandFromPROGMEM(DELETERESPONSEHTTP);
     _ESP01UART.print(handle);
     _ESP01UART.print(NEWLINE);
+    int16_t result = wait("S;U;short;long", 1000);
+    if (result == 0) return true;
+    else return false;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -317,7 +320,7 @@ String SSTuino::recvString(String target, uint32_t timeout, uint8_t reserve=8)
     return data;
 }
 
-bool SSTuino::recvFind(String target, uint32_t timeout, uint8_t reserve=8)
+bool SSTuino::recvFind(String target, uint32_t timeout, uint8_t reserve /* =8 */)
 {
     String data_tmp((char *)0);
     data_tmp.reserve(reserve);
@@ -333,7 +336,7 @@ bool SSTuino::recvFind(String target, uint32_t timeout, uint8_t reserve=8)
  *
  * @param text The constant from PROGMEM to write to the ESP8266 module
  */
-void SSTuino::writeCommandFromPROGMEM(const char* text, int buffersize=8) {
+void SSTuino::writeCommandFromPROGMEM(const char* text, int buffersize /* =8 */) {
     char buf[buffersize] = {'\0'};           // WARNING: THIS BUFFER ONLY GOES UP TO 8 CHARS!
     strcpy_P(buf, (char *) text);
     _ESP01UART.print(buf);
@@ -347,7 +350,7 @@ void SSTuino::writeCommandFromPROGMEM(const char* text, int buffersize=8) {
  * @param timeOut Timeout in milliseconds
  * @return -1 if timed out, 0, 1, 2, ... if the data matches one of the values in the values string
  */
-int16_t SSTuino::wait(char* values, uint16_t timeOut) {
+int16_t SSTuino::wait(const char* values, uint16_t timeOut) {
     if(!values)
         return -1;
     uint16_t length = strlen(values);
@@ -356,7 +359,7 @@ int16_t SSTuino::wait(char* values, uint16_t timeOut) {
     char CompareBuffer[length + 1];
     memset(CompareBuffer, 0, sizeof(CompareBuffer));
     uint16_t tokenQuantity = 1;
-    for (int16_t n = 0; n < length; n++) {
+    for (uint16_t n = 0; n < length; n++) {
         if (InputBuffer[n] == ';')
             tokenQuantity++;
     }
@@ -367,7 +370,7 @@ int16_t SSTuino::wait(char* values, uint16_t timeOut) {
     inputTokens[0] = InputBuffer;
     compareTokens[0] = CompareBuffer;
     uint16_t TokenPosition = 1;
-    for (int16_t n = 0; n < length; n++) {
+    for (uint16_t n = 0; n < length; n++) {
         if (InputBuffer[n] == ';') {
             InputBuffer[n] = 0;
             inputTokens[TokenPosition] = &InputBuffer[n + 1];
@@ -380,54 +383,7 @@ int16_t SSTuino::wait(char* values, uint16_t timeOut) {
     while (millis() - timer < timeOut) {
         while (_ESP01UART.available()) {
             c = _ESP01UART.read();
-            for (int16_t n = 0; n < tokenQuantity; n++) {
-                length = strlen(compareTokens[n]);
-                if (c == inputTokens[n][length])
-                    compareTokens[n][length] = c;
-                else if (length > 0)
-                    memset(compareTokens[n], 0, length);
-                if (!strcmp(inputTokens[n], compareTokens[n]))
-                    return n;
-            }
-        }
-    }
-    return -1;
-}
-
-int16_t SSTuino::waitNoOutput(char* values, uint16_t timeOut) {
-    if(!values)
-        return -1;
-    uint16_t length = strlen(values);
-    char InputBuffer[length + 1];
-    strcpy(InputBuffer, values);
-    char CompareBuffer[length + 1];
-    memset(CompareBuffer, 0, sizeof(CompareBuffer));
-    uint16_t tokenQuantity = 1;
-    for (int16_t n = 0; n < length; n++) {
-        if (InputBuffer[n] == ';')
-            tokenQuantity++;
-    }
-    char* inputTokens[tokenQuantity];
-    memset(inputTokens, 0, sizeof(inputTokens));
-    char* compareTokens[tokenQuantity];
-    memset(compareTokens, 0, sizeof(compareTokens));
-    inputTokens[0] = InputBuffer;
-    compareTokens[0] = CompareBuffer;
-    uint16_t TokenPosition = 1;
-    for (int16_t n = 0; n < length; n++) {
-        if (InputBuffer[n] == ';') {
-            InputBuffer[n] = 0;
-            inputTokens[TokenPosition] = &InputBuffer[n + 1];
-            compareTokens[TokenPosition] = &CompareBuffer[n + 1];
-            TokenPosition++;
-        }
-    }
-    uint64_t timer = millis();
-    char c;
-    while (millis() - timer < timeOut) {
-        while (_ESP01UART.available()) {
-            c = _ESP01UART.read();
-            for (int16_t n = 0; n < tokenQuantity; n++) {
+            for (uint16_t n = 0; n < tokenQuantity; n++) {
                 length = strlen(compareTokens[n]);
                 if (c == inputTokens[n][length])
                     compareTokens[n][length] = c;

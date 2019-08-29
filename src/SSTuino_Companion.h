@@ -92,7 +92,7 @@ public:
 //     int16_t setSoftAPSettings(String& ssid, String& password, uint8_t channel, EncryptionMethod encryptionMethod);
 //     int16_t setIP(bool permanent, String ip, String gateway="", String netmask="");
 
-    int16_t wait(char* values, uint16_t timeOut);
+    int16_t wait(const char* values, uint16_t timeOut);
 private:
     SoftwareSerial _ESP01UART;
     void writeCommandFromPROGMEM(const char* text, int buffersize=8);
