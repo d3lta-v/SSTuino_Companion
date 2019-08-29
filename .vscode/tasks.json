@@ -6,7 +6,7 @@
         {
             "label": "Build Library",
             "type": "shell",
-            "command": "~/bin/arduino-cli compile -v -b arduino:avr:uno src/SSTuino_Companion.ino",
+            "command": "~/bin/arduino-cli compile --warnings all -v -b arduino:avr:uno src/SSTuino_Companion.ino",
             "group": "build",
             "isBackground": false,
             "presentation": {
@@ -16,7 +16,10 @@
                 "panel": "shared",
                 "showReuseMessage": true
             },
-            "problemMatcher": []
+            "problemMatcher": {
+                "base": "$gcc",
+                "fileLocation": ["absolute"]
+            },
         },
         {
             "label": "Reinstall Library",
