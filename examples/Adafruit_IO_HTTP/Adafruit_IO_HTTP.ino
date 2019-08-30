@@ -1,3 +1,16 @@
+/*
+  Adafruit IO with HTTP
+
+  For the SSTuino boards.
+
+  Sends a HTTP message to Adafruit IO for datalogging purposes. This code
+  sends random numbers to Adafruit IO, but one can easily repurpose the
+  code to send their own information.
+
+  This example code is in the public domain.
+
+  https://d3lta-v.github.io/SSTuino/
+*/
 
 #include "SSTuino_Companion.h"
 
