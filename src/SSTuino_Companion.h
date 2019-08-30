@@ -85,6 +85,17 @@ public:
     int getHTTPStatusCode(int handle);
     String getHTTPReply(int handle, HTTP_Content field, bool deleteReply);
     bool deleteHTTPReply(int handle);
+
+    //MQTT operations
+    bool enableMQTT(const String& server, bool useSecure);
+    bool enableMQTT(const String& server, bool useSecure, const String& username, const String& password);
+    bool disableMQTT();
+    bool isMQTTConnected();
+    bool mqttPublish(const String& topic, const String& content);
+    bool mqttSubscribe(const String& topic);
+    bool mqttUnsubscribe(const String& topic);
+    bool mqttNewDataArrived(const String& topic);
+    String mqttGetSubcriptionData(const String& topic);
 //     int16_t beginDeepSleep(uint16_t sleepTime, bool blocking);
 
 //     int16_t setDHCPEnabled(bool enabled);

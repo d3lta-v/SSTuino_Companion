@@ -41,7 +41,8 @@
 
 // Basic constant strings
 const char NEWLINE[] = "\r\n";              // Newline is not in PROGMEM due to frequent use
-const char DELIMITER[] PROGMEM = "\x1f";
+const char DELIMITER[] = "\x1f";
+const char SUSHORTLONG[] = "S;U;short;long";
 
 // Basic commands
 const char NOOPERATION[] PROGMEM = "nop\r\n";
@@ -145,7 +146,7 @@ void SSTuino::connectToWifi(const String& ssid, const String& password) {
     rx_empty();
     writeCommandFromPROGMEM(CONNECTAP);
     _ESP01UART.print(ssid);
-    writeCommandFromPROGMEM(DELIMITER);
+    _ESP01UART.print(DELIMITER);
     _ESP01UART.print(password);
     _ESP01UART.print(NEWLINE);
 }
@@ -177,7 +178,7 @@ int SSTuino::setupHTTP(HTTP_Operation op, const String& url) {
     rx_empty();
     writeCommandFromPROGMEM(INITHTTP);
     _ESP01UART.print((char)op);
-    writeCommandFromPROGMEM(DELIMITER);
+    _ESP01UART.print(DELIMITER);
     _ESP01UART.print(url);
     _ESP01UART.print(NEWLINE);
     String data = recvString(NEWLINE, 1000, 8);
@@ -190,10 +191,10 @@ bool SSTuino::setHTTPPOSTParameters(int handle, const String& data) {
     rx_empty();
     writeCommandFromPROGMEM(POSTPARAMSHTTP);
     _ESP01UART.print(handle);
-    writeCommandFromPROGMEM(DELIMITER);
+    _ESP01UART.print(DELIMITER);
     _ESP01UART.print(data);
     _ESP01UART.print(NEWLINE);
-    int16_t result = wait("S;U;short;long", 1000);
+    int16_t result = wait(SUSHORTLONG, 1000);
     if (result == 0) return true;
     else return false;
 }
@@ -202,10 +203,10 @@ bool SSTuino::setHTTPHeaders(int handle, const String& data) {
     rx_empty();
     writeCommandFromPROGMEM(HEADERSHTTP);
     _ESP01UART.print(handle);
-    writeCommandFromPROGMEM(DELIMITER);
+    _ESP01UART.print(DELIMITER);
     _ESP01UART.print(data);
     _ESP01UART.print(NEWLINE);
-    int16_t result = wait("S;U;short;long", 1000);
+    int16_t result = wait(SUSHORTLONG, 1000);
     if (result == 0) return true;
     else return false;
 }
@@ -215,7 +216,7 @@ bool SSTuino::transmitHTTP(int handle) {
     writeCommandFromPROGMEM(TRANSMITHTTP);
     _ESP01UART.print(handle);
     _ESP01UART.print(NEWLINE);
-    int16_t result = wait("S;U;short;long", 1000);
+    int16_t result = wait(SUSHORTLONG, 1000);
     if (result == 0) return true;
     else return false;
 }
@@ -249,9 +250,9 @@ int SSTuino::getHTTPStatusCode(int handle) {
     rx_empty();
     writeCommandFromPROGMEM(GETRESPONSEHTTP);
     _ESP01UART.print(handle);
-    writeCommandFromPROGMEM(DELIMITER);
+    _ESP01UART.print(DELIMITER);
     _ESP01UART.print('S');
-    writeCommandFromPROGMEM(DELIMITER);
+    _ESP01UART.print(DELIMITER);
     _ESP01UART.print('F');
     _ESP01UART.print(NEWLINE);
     String data = recvString(F("\r\n"), 1000, 8);
@@ -264,10 +265,10 @@ String SSTuino::getHTTPReply(int handle, HTTP_Content field, bool deleteReply) {
     rx_empty();
     writeCommandFromPROGMEM(GETRESPONSEHTTP);
     _ESP01UART.print(handle);
-    writeCommandFromPROGMEM(DELIMITER);
+    _ESP01UART.print(DELIMITER);
     if (field == HEADERS) _ESP01UART.print('H');
     if (field == CONTENT) _ESP01UART.print('C');
-    writeCommandFromPROGMEM(DELIMITER);
+    _ESP01UART.print(DELIMITER);
     deleteReply ? _ESP01UART.print('T') : _ESP01UART.print('F');
     _ESP01UART.print(NEWLINE);
     return recvString(F("\r\n"), 2000, 64);
@@ -278,12 +279,78 @@ bool SSTuino::deleteHTTPReply(int handle) {
     writeCommandFromPROGMEM(DELETERESPONSEHTTP);
     _ESP01UART.print(handle);
     _ESP01UART.print(NEWLINE);
-    int16_t result = wait("S;U;short;long", 1000);
+    int16_t result = wait(SUSHORTLONG, 1000);
     if (result == 0) return true;
     else return false;
 }
 
-/* ------------------------------------------------------------------------- */
+/* ---------------------------- MQTT operations ---------------------------- */
+
+bool SSTuino::enableMQTT(const String& server, bool useSecure) {
+    rx_empty();
+    writeCommandFromPROGMEM(MQTTCONFIGURE);
+    _ESP01UART.print('T');
+    _ESP01UART.print(DELIMITER);
+    _ESP01UART.print(server);
+    _ESP01UART.print(DELIMITER);
+    useSecure ? _ESP01UART.print('T') : _ESP01UART.print('F');
+    _ESP01UART.print(NEWLINE);
+    int16_t result = wait(SUSHORTLONG, 1000);
+    if (result == 0) return true;
+    else return false;
+}
+
+bool SSTuino::enableMQTT(const String& server, bool useSecure, const String& username, const String& password) {
+    rx_empty();
+    writeCommandFromPROGMEM(MQTTCONFIGURE);
+    _ESP01UART.print('T');
+    _ESP01UART.print(DELIMITER);
+    _ESP01UART.print(server);
+    _ESP01UART.print(DELIMITER);
+    useSecure ? _ESP01UART.print('T') : _ESP01UART.print('F');
+    _ESP01UART.print(DELIMITER);
+    _ESP01UART.print(username);
+    _ESP01UART.print(DELIMITER);
+    _ESP01UART.print(password);
+    _ESP01UART.print(NEWLINE);
+    int16_t result = wait(SUSHORTLONG, 1000);
+    if (result == 0) return true;
+    else return false;
+}
+
+bool SSTuino::disableMQTT() {
+    rx_empty();
+    writeCommandFromPROGMEM(MQTTCONFIGURE);
+    _ESP01UART.print('F');
+    _ESP01UART.print(NEWLINE);
+    int16_t result = wait(SUSHORTLONG, 1000);
+    if (result == 0) return true;
+    else return false;
+}
+
+bool SSTuino::isMQTTConnected() {
+    rx_empty();
+    writeCommandFromPROGMEM(MQTTISCONNECTED);
+    int16_t result = wait("T;F;short;long", 1000);
+    if (result == 0) return true;
+    else return false;
+}
+
+bool SSTuino::mqttPublish(const String& topic, const String& content) {
+    rx_empty();
+    writeCommandFromPROGMEM(MQTTPUBLISH);
+    _ESP01UART.print(topic);
+    _ESP01UART.print(DELIMITER);
+    _ESP01UART.print(content);
+    _ESP01UART.print(DELIMITER);
+    _ESP01UART.print('0');
+    _ESP01UART.print(DELIMITER);
+    _ESP01UART.print('F');
+    _ESP01UART.print(NEWLINE);
+    int16_t result = wait(SUSHORTLONG, 1000);
+    if (result == 0) return true;
+    else return false;
+}
 
 /******************************************************************************
  * Private functions                                                          *
