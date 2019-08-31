@@ -64,6 +64,8 @@ void connectToWifi(void)
   if (wifiStatus != SUCCESSFUL) {
     Serial.println(F("Failed to connect to Wi-Fi"));
     while (true){};
+  } else {
+    Serial.println(F("Wi-Fi connected"));
   }
 }
 
