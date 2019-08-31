@@ -45,9 +45,7 @@ void setup()
 void loop()
 {
   receiveData();
-  delay(1000); // 1 second interval
-  Serial.print("Current received data: ");
-  Serial.print(receivedData);
+  delay(500); // half second interval
 }
 
 void connectToWifi(void)
@@ -99,6 +97,8 @@ void receiveData(void)
   // Check if there is new data to be received
   if (wifi.mqttNewDataArrived(F(IO_USERNAME "/feeds/" FEED_KEY))) {
     receivedData = wifi.mqttGetSubcriptionData(F(IO_USERNAME "/feeds/" FEED_KEY));
+    Serial.print("Received data: ");
+    Serial.println(receivedData);
   } else {
     Serial.println(F("No new data available"));
   }
