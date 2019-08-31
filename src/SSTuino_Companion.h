@@ -110,7 +110,8 @@ private:
     int16_t waitNoOutput(char* values, uint16_t timeOut);
     void rx_empty(void);
     bool recvFind(String target, uint32_t timeout, uint8_t reserve=8);
-    String recvString(String target, uint32_t timeout, uint8_t reserve);
+    String controlledRecvString(uint32_t timeout, uint8_t reserve=8);
+    String recvString(String target, uint32_t timeout, uint8_t reserve=8);
     // bool debug;
 };
 

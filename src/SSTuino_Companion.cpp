@@ -388,7 +388,7 @@ String SSTuino::mqttGetSubcriptionData(const String& topic) {
     writeCommandFromPROGMEM(MQTTGETSUBDATA);
     _ESP01UART.print(topic);
     _ESP01UART.print(NEWLINE);
-    return recvString(NEWLINE, 2000, 8);
+    return controlledRecvString(2000);
 }
 
 /******************************************************************************
@@ -407,7 +407,28 @@ void SSTuino::rx_empty(void)
     }
 }
 
-String SSTuino::recvString(String target, uint32_t timeout, uint8_t reserve=8)
+String SSTuino::controlledRecvString(uint32_t timeout, uint8_t reserve /* 8 */)
+{
+    String data((char *)0);
+    data.reserve(reserve);
+    char a;
+    unsigned long start = millis();
+    bool transmitStart = false, transmitStop = false;
+    while (millis() - start < timeout) {
+        while(_ESP01UART.available() > 0) {
+            a = _ESP01UART.read();
+            if (a == '\x13' && transmitStop == false) transmitStop = true;
+            if (transmitStart && !transmitStop) data += a;
+            if (a == '\x11' && transmitStart == false) transmitStart = true;
+        }
+        if (transmitStop) {
+            break;
+        }
+    }
+    return data;
+}
+
+String SSTuino::recvString(String target, uint32_t timeout, uint8_t reserve /* 8 */)
 {
     String data((char *)0);
     data.reserve(reserve);
