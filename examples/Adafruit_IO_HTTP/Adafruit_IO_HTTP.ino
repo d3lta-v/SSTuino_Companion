@@ -14,8 +14,8 @@
 
 #include "SSTuino_Companion.h"
 
-#define SSID          F("SSID GOES HERE")
-#define PASSWORD      F("WIFI PASSWORD GOES HERE")
+#define SSID          "SSID GOES HERE"
+#define PASSWORD      "WIFI PASSWORD GOES HERE"
 #define IO_USERNAME   "AIO USERNAME GOES HERE"
 #define IO_KEY        "AIO KEY GOES HERE"
 #define FEED_KEY      "FEED KEY GOES HERE"
@@ -55,7 +55,7 @@ void loop()
 void connectToWifi(void)
 {
   // Connects to Wifi and displays connection state
-  wifi.connectToWifi(SSID, PASSWORD);
+  wifi.connectToWifi(F(SSID), F(PASSWORD));
   Serial.println(F("Connecting to Wi-Fi..."));
 
   delay(10000); // 10 seconds optimal for wifi connection to fully establish
@@ -72,29 +72,29 @@ void transmitData(int value)
   // Setup the connection
   int handle = wifi.setupHTTP(POST, F("https://io.adafruit.com/api/v2/" IO_USERNAME "/feeds/" FEED_KEY "/data"));
   if (handle == -1) {
-    Serial.println(F("Unable to setup HTTP connection!"));
-    while (true){};
+    Serial.println(F("Unable to setup HTTP connection! Skipping this connection attempt"));
+    return;
   }
 
   // Set POST data
   String combinedString = "value=";
   combinedString += value;
   if (!wifi.setHTTPPOSTParameters(handle, combinedString)) {
-    Serial.println(F("HTTP unable to set POST parameters!"));
-    while (true){};
+    Serial.println(F("HTTP unable to set POST parameters! Skipping this connection attempt"));
+    return;
   }
 
   // Set headers to contain the key
   if (!wifi.setHTTPHeaders(handle, "Content-Type: multipart/form-data\nX-AIO-Key: " IO_KEY "\n")) {
-    Serial.println(F("HTTP unable to set headers!"));
-    while (true){};
+    Serial.println(F("HTTP unable to set headers! Skipping this connection attempt"));
+    return;
   }
 
   // Actually transmit the data
   Serial.println(F("Transmitting data to Adafruit IO via HTTP..."));
   if (!wifi.transmitHTTP(handle)) {
-      Serial.println(F("Transmit failed!"));
-      while (true){};
+    Serial.println(F("Transmit failed! Skipping this connection attempt"));
+    return;
   }
 
   delay(10000);
