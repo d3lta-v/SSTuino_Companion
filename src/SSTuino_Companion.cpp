@@ -71,7 +71,7 @@ const char DELETERESPONSEHTTP[] PROGMEM = "dhr ";
 const char MQTTCONFIGURE[] PROGMEM = "mcg ";
 const char MQTTISCONNECTED[] PROGMEM = "mic\r\n";
 const char MQTTSUB[] PROGMEM = "msb ";
-const char MQTTUNSUB[] PROGMEM = "mus ";\
+const char MQTTUNSUB[] PROGMEM = "mus ";
 const char MQTTNEWDATA[] PROGMEM = "mnd ";
 const char MQTTGETSUBDATA[] PROGMEM = "mgs ";
 const char MQTTPUBLISH[] PROGMEM = "mpb ";
@@ -255,7 +255,7 @@ int SSTuino::getHTTPStatusCode(int handle) {
     _ESP01UART.print(DELIMITER);
     _ESP01UART.print('F');
     _ESP01UART.print(NEWLINE);
-    String data = recvString(F("\r\n"), 1000, 8);
+    String data = recvString(NEWLINE, 1000, 8);
     if (data.charAt(0) == 'U') return -1; // -1 indicates that the function failed
     //TODO: can consider performing robust validation for whether it is an integer
     return data.toInt();
@@ -271,7 +271,7 @@ String SSTuino::getHTTPReply(int handle, HTTP_Content field, bool deleteReply) {
     _ESP01UART.print(DELIMITER);
     deleteReply ? _ESP01UART.print('T') : _ESP01UART.print('F');
     _ESP01UART.print(NEWLINE);
-    return recvString(F("\r\n"), 2000, 64);
+    return recvString(NEWLINE, 2000, 64);
 }
 
 bool SSTuino::deleteHTTPReply(int handle) {
@@ -350,6 +350,45 @@ bool SSTuino::mqttPublish(const String& topic, const String& content) {
     int16_t result = wait(SUSHORTLONG, 1000);
     if (result == 0) return true;
     else return false;
+}
+
+bool SSTuino::mqttSubscribe(const String& topic) {
+    rx_empty();
+    writeCommandFromPROGMEM(MQTTSUB);
+    _ESP01UART.print(topic);
+    _ESP01UART.print(NEWLINE);
+    int16_t result = wait(SUSHORTLONG, 1000);
+    if (result == 0) return true;
+    else return false;
+}
+
+bool SSTuino::mqttUnsubscribe(const String& topic) {
+    rx_empty();
+    writeCommandFromPROGMEM(MQTTUNSUB);
+    _ESP01UART.print(topic);
+    _ESP01UART.print(NEWLINE);
+    int16_t result = wait(SUSHORTLONG, 1000);
+    if (result == 0) return true;
+    else return false;
+}
+
+bool SSTuino::mqttNewDataArrived(const String& topic) {
+    rx_empty();
+    writeCommandFromPROGMEM(MQTTNEWDATA);
+    _ESP01UART.print(topic);
+    _ESP01UART.print(NEWLINE);
+    int16_t result = wait("T;F;short;long", 1000);
+    rx_empty();
+    if (result == 0) return true;
+    else return false;
+}
+
+String SSTuino::mqttGetSubcriptionData(const String& topic) {
+    rx_empty();
+    writeCommandFromPROGMEM(MQTTGETSUBDATA);
+    _ESP01UART.print(topic);
+    _ESP01UART.print(NEWLINE);
+    return recvString(NEWLINE, 2000, 8);
 }
 
 /******************************************************************************
