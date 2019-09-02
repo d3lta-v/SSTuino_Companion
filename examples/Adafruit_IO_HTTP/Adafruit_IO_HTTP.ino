@@ -40,7 +40,7 @@ void setup()
   // Setup random number generator (as dummy data)
   randomSeed(analogRead(0));
 
-  connectToWifi();
+  wifiConnect();
 }
 
 void loop()
@@ -52,7 +52,7 @@ void loop()
   delay(5000); // 5 second interval
 }
 
-void connectToWifi(void)
+void wifiConnect(void)
 {
   // Connects to Wifi and displays connection state
   wifi.connectToWifi(F(SSID), F(PASSWORD));

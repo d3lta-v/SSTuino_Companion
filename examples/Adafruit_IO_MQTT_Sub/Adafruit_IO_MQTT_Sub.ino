@@ -36,9 +36,8 @@ void setup()
     while (true){};
   }
 
-  connectToWifi();
+  wifiConnect();
 
-  // Setup MQTT server
   setupMQTT();
 }
 
@@ -48,7 +47,7 @@ void loop()
   delay(500); // half second interval
 }
 
-void connectToWifi(void)
+void wifiConnect(void)
 {
   // Connects to Wifi and displays connection state
   wifi.connectToWifi(F(SSID), F(PASSWORD));

@@ -40,9 +40,8 @@ void setup()
   // Setup random number generator (as dummy data)
   randomSeed(analogRead(0));
 
-  connectToWifi();
+  wifiConnect();
 
-  // Setup MQTT server
   setupMQTT();
 }
 
@@ -55,7 +54,7 @@ void loop()
   delay(10000); // 5 second interval
 }
 
-void connectToWifi(void)
+void wifiConnect(void)
 {
   // Connects to Wifi and displays connection state
   wifi.connectToWifi(F(SSID), F(PASSWORD));
