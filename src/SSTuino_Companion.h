@@ -108,8 +108,7 @@ public:
 //     int16_t setStationName(String& name);
 //     int16_t setSoftAPSettings(String& ssid, String& password, uint8_t channel, EncryptionMethod encryptionMethod);
 //     int16_t setIP(bool permanent, String ip, String gateway="", String netmask="");
-
-    int16_t wait(const char* values, uint16_t timeOut);
+    
 private:
     SoftwareSerial _ESP01UART;
     void writeCommandFromPROGMEM(const char* text, int buffersize=8);
@@ -118,6 +117,7 @@ private:
     bool recvFind(String target, uint32_t timeout, uint8_t reserve=8);
     String controlledRecvString(uint32_t timeout, FLOWCTRL_TYPE flowControlType, uint8_t reserve=8);
     String recvString(String target, uint32_t timeout, uint8_t reserve=8);
+    int16_t wait(const char* values, uint16_t timeOut);
     int16_t waitXON(const char* values, uint16_t timeOut, FLOWCTRL_TYPE flowControlType);
     // bool debug;
 };
