@@ -232,19 +232,7 @@ Status SSTuino::getHTTPProgress(int handle) {
     _ESP01UART.print(handle);
     _ESP01UART.print(NEWLINE);
     int16_t result = wait("S;U;P;N", 1000);
-    switch (result)
-    {
-    case 0:
-        return SUCCESSFUL;
-    case 1:
-        return UNSUCCESSFUL;
-    case 2:
-        return IN_PROGRESS;
-    case 3:
-        return NOT_ATTEMPTED;
-    default:
-        return UNRESPONSIVE;
-    }
+    return (Status)result;
 }
 
 /* ------------------------------------------------------------------------- */
