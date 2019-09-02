@@ -35,6 +35,27 @@ getHTTPStatusCode	KEYWORD2
 getHTTPReply	KEYWORD2
 deleteHTTPReply	KEYWORD2
 
+enableMQTT	KEYWORD2
+disableMQTT	KEYWORD2
+isMQTTConnected	KEYWORD2
+mqttPublish	KEYWORD2
+mqttSubscribe	KEYWORD2
+mqttUnsubscribe	KEYWORD2
+mqttNewDataArrived	KEYWORD2
+mqttGetSubcriptionData	KEYWORD2
+
 #######################################
 # Constants (LITERAL1)
 #######################################
+
+UNRESPONSIVE	LITERAL1
+SUCCESSFUL	LITERAL1
+UNSUCCESSFUL	LITERAL1
+IN_PROGRESS	LITERAL1
+NOT_ATTEMPTED	LITERAL1
+
+GET	LITERAL1
+POST	LITERAL1
+
+CONTENT	LITERAL1
+HEADERS	LITERAL1
