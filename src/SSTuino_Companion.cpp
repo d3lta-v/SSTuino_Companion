@@ -43,6 +43,7 @@
 const char NEWLINE[] = "\r\n";              // Newline is not in PROGMEM due to frequent use
 const char DELIMITER[] = "\x1f";
 const char SUSHORTLONG[] = "S;U;short;long";
+const char LIBRARY_VERSION[] = "0.1.0\r\n";             // Change this when ULWI ISA definition changes
 
 // Basic commands
 const char NOOPERATION[] PROGMEM = "nop\r\n";
@@ -125,10 +126,13 @@ bool SSTuino::smokeTest() {
     else return false;
 }
 
-String SSTuino::getVersion() {
+bool SSTuino::verifyVersion() {
     rx_empty();
     writeCommandFromPROGMEM(VERSION);
-    return recvString(NEWLINE, 1000, 16);
+    String version = recvString(NEWLINE, 1000, 8);
+    Serial.print(version);
+    if (version.equals(LIBRARY_VERSION)) return true;
+    return false;
 }
 
 

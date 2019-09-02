@@ -67,7 +67,7 @@ public:
 
     // Basic functionality
     bool smokeTest();
-    String getVersion();
+    bool verifyVersion();
     void reset();
 
     // Wi-fi functionality
