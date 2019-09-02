@@ -32,6 +32,7 @@ struct ReturnedData {
 };
 
 enum Status {
+    UNRESPONSIVE = -1,
     SUCCESSFUL = 0,
     UNSUCCESSFUL,
     IN_PROGRESS,
@@ -46,6 +47,11 @@ enum HTTP_Operation {
 enum HTTP_Content {
     CONTENT,
     HEADERS
+};
+
+enum FLOWCTRL_TYPE {
+    FLOWCTRL_TYPE1 = 0, // Type 1 flow control for large data chunks like printing out a HTTP reply
+    FLOWCTRL_TYPE2 = 1  // Type 2 flow control for fast-response replies like getting HTTP status
 };
 
 /*
@@ -110,8 +116,9 @@ private:
     int16_t waitNoOutput(char* values, uint16_t timeOut);
     void rx_empty(void);
     bool recvFind(String target, uint32_t timeout, uint8_t reserve=8);
-    String controlledRecvString(uint32_t timeout, uint8_t reserve=8);
+    String controlledRecvString(uint32_t timeout, FLOWCTRL_TYPE flowControlType, uint8_t reserve=8);
     String recvString(String target, uint32_t timeout, uint8_t reserve=8);
+    int16_t waitXON(const char* values, uint16_t timeOut, FLOWCTRL_TYPE flowControlType);
     // bool debug;
 };
 

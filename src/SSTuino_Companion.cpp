@@ -76,6 +76,10 @@ const char MQTTNEWDATA[] PROGMEM = "mnd ";
 const char MQTTGETSUBDATA[] PROGMEM = "mgs ";
 const char MQTTPUBLISH[] PROGMEM = "mpb ";
 
+// Software flow control
+
+const char FLOWCONTROL[2][2] = { {'\x11', '\x13'}, { '\x12', '\x14' } }; // This maps to the FLOWCTRL_TYPE enum
+
 /******************************************************************************
  * Constructor                                                                *
  *****************************************************************************/
@@ -155,7 +159,6 @@ Status SSTuino::getWifiStatus() {
     rx_empty();
     writeCommandFromPROGMEM(STATUSAP);
     int16_t result = wait("S;U;P;N", 1000);
-    if (result < 0) return UNSUCCESSFUL;
     return (Status)result;
 }
 
@@ -240,7 +243,7 @@ Status SSTuino::getHTTPProgress(int handle) {
     case 3:
         return NOT_ATTEMPTED;
     default:
-        return UNSUCCESSFUL;
+        return UNRESPONSIVE;
     }
 }
 
@@ -255,7 +258,7 @@ int SSTuino::getHTTPStatusCode(int handle) {
     _ESP01UART.print(DELIMITER);
     _ESP01UART.print('F');
     _ESP01UART.print(NEWLINE);
-    String data = recvString(NEWLINE, 1000, 8);
+    String data = controlledRecvString(1000, FLOWCTRL_TYPE1, 8);
     if (data.charAt(0) == 'U') return -1; // -1 indicates that the function failed
     //TODO: can consider performing robust validation for whether it is an integer
     return data.toInt();
@@ -271,7 +274,7 @@ String SSTuino::getHTTPReply(int handle, HTTP_Content field, bool deleteReply) {
     _ESP01UART.print(DELIMITER);
     deleteReply ? _ESP01UART.print('T') : _ESP01UART.print('F');
     _ESP01UART.print(NEWLINE);
-    return recvString(NEWLINE, 2000, 64);
+    return controlledRecvString(2000, FLOWCTRL_TYPE1, 64);
 }
 
 bool SSTuino::deleteHTTPReply(int handle) {
@@ -388,7 +391,7 @@ String SSTuino::mqttGetSubcriptionData(const String& topic) {
     writeCommandFromPROGMEM(MQTTGETSUBDATA);
     _ESP01UART.print(topic);
     _ESP01UART.print(NEWLINE);
-    return controlledRecvString(2000);
+    return controlledRecvString(2000, FLOWCTRL_TYPE1);
 }
 
 /******************************************************************************
@@ -407,7 +410,7 @@ void SSTuino::rx_empty(void)
     }
 }
 
-String SSTuino::controlledRecvString(uint32_t timeout, uint8_t reserve /* 8 */)
+String SSTuino::controlledRecvString(uint32_t timeout, FLOWCTRL_TYPE flowControlType, uint8_t reserve /* 8 */)
 {
     String data((char *)0);
     data.reserve(reserve);
@@ -417,9 +420,9 @@ String SSTuino::controlledRecvString(uint32_t timeout, uint8_t reserve /* 8 */)
     while (millis() - start < timeout) {
         while(_ESP01UART.available() > 0) {
             a = _ESP01UART.read();
-            if (a == '\x13' && transmitStop == false) transmitStop = true;
+            if (a == FLOWCONTROL[flowControlType][1] && transmitStop == false) transmitStop = true;
             if (transmitStart && !transmitStop) data += a;
-            if (a == '\x11' && transmitStart == false) transmitStart = true;
+            if (a == FLOWCONTROL[flowControlType][0] && transmitStart == false) transmitStart = true;
         }
         if (transmitStop) {
             break;
@@ -470,8 +473,7 @@ void SSTuino::writeCommandFromPROGMEM(const char* text, int buffersize /* =8 */)
 }
 
 /*!
- * @brief Waits for a certain serial input. This also prints out the serial data before hitting the correct case
- * if debug mode is enabled.
+ * @brief Waits for a certain serial input.
  *
  * @param values Semicolon delimited expected C-style string
  * @param timeOut Timeout in milliseconds
@@ -519,6 +521,65 @@ int16_t SSTuino::wait(const char* values, uint16_t timeOut) {
                 if (!strcmp(inputTokens[n], compareTokens[n]))
                     return n;
             }
+        }
+    }
+    return -1;
+}
+
+/*!
+ * @brief Waits for a certain serial input while accounting for software flow control
+ *
+ * @param values Semicolon delimited expected C-style string
+ * @param timeOut Timeout in milliseconds
+ * @return -1 if timed out, 0, 1, 2, ... if the data matches one of the values in the values string
+ */
+int16_t SSTuino::waitXON(const char* values, uint16_t timeOut, FLOWCTRL_TYPE flowControlType) {
+    if(!values)
+        return -1;
+    uint16_t length = strlen(values);
+    char InputBuffer[length + 1];
+    strcpy(InputBuffer, values);
+    char CompareBuffer[length + 1];
+    memset(CompareBuffer, 0, sizeof(CompareBuffer));
+    uint16_t tokenQuantity = 1;
+    for (uint16_t n = 0; n < length; n++) {
+        if (InputBuffer[n] == ';')
+            tokenQuantity++;
+    }
+    char* inputTokens[tokenQuantity];
+    memset(inputTokens, 0, sizeof(inputTokens));
+    char* compareTokens[tokenQuantity];
+    memset(compareTokens, 0, sizeof(compareTokens));
+    inputTokens[0] = InputBuffer;
+    compareTokens[0] = CompareBuffer;
+    uint16_t TokenPosition = 1;
+    for (uint16_t n = 0; n < length; n++) {
+        if (InputBuffer[n] == ';') {
+            InputBuffer[n] = 0;
+            inputTokens[TokenPosition] = &InputBuffer[n + 1];
+            compareTokens[TokenPosition] = &CompareBuffer[n + 1];
+            TokenPosition++;
+        }
+    }
+    uint32_t timer = millis();
+    char c;
+    bool transmitStart = false, transmitStop = false;
+    while (millis() - timer < timeOut) {
+        while (_ESP01UART.available()) {
+            c = _ESP01UART.read();
+            if (c == FLOWCONTROL[flowControlType][1] && transmitStop == false) transmitStop = true;
+            if (transmitStart && !transmitStop) {
+                for (uint16_t n = 0; n < tokenQuantity; n++) {
+                    length = strlen(compareTokens[n]);
+                    if (c == inputTokens[n][length])
+                        compareTokens[n][length] = c;
+                    else if (length > 0)
+                        memset(compareTokens[n], 0, length);
+                    if (!strcmp(inputTokens[n], compareTokens[n]))
+                        return n;
+                }
+            }
+            if (c == FLOWCONTROL[flowControlType][0] && transmitStart == false) transmitStart = true;
         }
     }
     return -1;
