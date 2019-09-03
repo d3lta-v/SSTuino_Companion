@@ -22,8 +22,6 @@
 
 SSTuino wifi = SSTuino();
 
-int randNumber;
-
 void setup()
 {
   Serial.begin(9600);
@@ -37,21 +35,29 @@ void setup()
     while (true){};
   }
 
-  // Setup random number generator (as dummy data)
+  // Setup random number generator (as dummy data), delete this if you are writing your own code
   randomSeed(analogRead(0));
 
   wifiConnect();
 
   setupMQTT();
+
+  /*
+    Insert your setup code here
+  */
 }
 
 void loop()
 {
-  randNumber = (int)random(0, 127);
+  /*
+    Insert your loop code here and change randNumber to be the data you wish to send
+  */
+
+  double randNumber = (double)random(0, 127);
   Serial.print("Random number picked: ");
   Serial.println(randNumber);
-  transmitData(randNumber);
-  delay(10000); // 5 second interval
+  transmitData(String(randNumber));
+  delay(7500); // 7.5 second interval to prevent flooding Adafruit IO
 }
 
 void wifiConnect(void)
@@ -74,6 +80,7 @@ void wifiConnect(void)
 void setupMQTT(void)
 {
   // Setup MQTT
+  Serial.println(F("Setting up MQTT..."));
   bool mqttSuccess = wifi.enableMQTT(F("io.adafruit.com"), true, IO_USERNAME, IO_KEY);
   if (!mqttSuccess) {
     Serial.println(F("Failed to enable MQTT. Halting."));
@@ -90,9 +97,9 @@ void setupMQTT(void)
   }
 }
 
-void transmitData(int value)
+void transmitData(const String& value)
 {
-  if (wifi.mqttPublish(F(IO_USERNAME "/feeds/" FEED_KEY), String(value))) {
+  if (wifi.mqttPublish(F(IO_USERNAME "/feeds/" FEED_KEY), value)) {
     Serial.println(F("Successfully published data!"));
   } else {
     Serial.println(F("Failed to publish data!"));
