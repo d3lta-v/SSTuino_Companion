@@ -130,7 +130,6 @@ bool SSTuino::verifyVersion() {
     rx_empty();
     writeCommandFromPROGMEM(VERSION);
     String version = recvString(NEWLINE, 1000, 8);
-    Serial.print(version);
     if (version.equals(LIBRARY_VERSION)) return true;
     return false;
 }
