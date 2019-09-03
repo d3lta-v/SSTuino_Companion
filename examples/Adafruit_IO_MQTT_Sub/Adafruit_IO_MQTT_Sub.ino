@@ -21,7 +21,7 @@
 
 SSTuino wifi = SSTuino();
 
-String receivedData  = "    ";
+String receivedRawData = "    ";
 
 void setup()
 {
@@ -39,11 +39,27 @@ void setup()
   wifiConnect();
 
   setupMQTT();
+
+  /*
+    Insert your setup code here
+  */
 }
 
 void loop()
 {
-  receiveData();
+  /*
+    Insert your loop code here, and you can do more processing with receivedRawData
+  */
+
+  if (wifi.mqttNewDataArrived(F(IO_USERNAME "/feeds/" FEED_KEY))) {
+    receivedRawData = wifi.mqttGetSubcriptionData(F(IO_USERNAME "/feeds/" FEED_KEY));
+    Serial.print(F("New data available: "));
+    Serial.println(receivedRawData);
+  } else {
+    Serial.print(F("No new data available, current data is: "));
+    Serial.println(receivedRawData);
+  }
+
   delay(500); // half second interval
 }
 
@@ -67,7 +83,8 @@ void wifiConnect(void)
 void setupMQTT(void)
 {
   // Setup MQTT
-  bool mqttSuccess = wifi.enableMQTT(F("io.adafruit.com"), false, IO_USERNAME, IO_KEY);
+  Serial.println(F("Setting up MQTT..."));
+  bool mqttSuccess = wifi.enableMQTT(F("io.adafruit.com"), true, IO_USERNAME, IO_KEY);
   if (!mqttSuccess) {
     Serial.println(F("Failed to enable MQTT. Halting."));
     while (true){};
@@ -88,17 +105,5 @@ void setupMQTT(void)
   } else {
     Serial.println(F("Failed to subscribe. Halting."));
     while (true){};
-  }
-}
-
-void receiveData(void)
-{
-  // Check if there is new data to be received
-  if (wifi.mqttNewDataArrived(F(IO_USERNAME "/feeds/" FEED_KEY))) {
-    receivedData = wifi.mqttGetSubcriptionData(F(IO_USERNAME "/feeds/" FEED_KEY));
-    Serial.print("Received data: ");
-    Serial.println(receivedData);
-  } else {
-    Serial.println(F("No new data available"));
   }
 }
