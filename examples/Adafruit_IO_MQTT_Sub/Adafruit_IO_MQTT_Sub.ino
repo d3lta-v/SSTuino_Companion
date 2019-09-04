@@ -47,20 +47,21 @@ void setup()
 
 void loop()
 {
-  /*
-    Insert your loop code here, and you can do more processing with receivedRawData
-  */
+  bool newDataReceived = false;
+  wifi.mqttPollNewData(&newDataReceived, F(IO_USERNAME "/feeds/" FEED_KEY), 500);
+  /* The above code "mutates" the newDataReceived variable, which means it
+     doesn't have to return anything */
 
-  if (wifi.mqttNewDataArrived(F(IO_USERNAME "/feeds/" FEED_KEY))) {
+  if (newDataReceived == true) {
+    // Print out the new data when you received it
     receivedRawData = wifi.mqttGetSubcriptionData(F(IO_USERNAME "/feeds/" FEED_KEY));
-    Serial.print(F("New data available: "));
-    Serial.println(receivedRawData);
-  } else {
-    Serial.print(F("No new data available, current data is: "));
+    Serial.print(F("New data received: "));
     Serial.println(receivedRawData);
   }
 
-  delay(500); // half second interval
+  /*
+    Insert your loop code here, and you can do more processing with receivedRawData
+  */
 }
 
 void wifiConnect(void)
