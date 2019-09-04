@@ -92,7 +92,7 @@ public:
     String getHTTPReply(int handle, HTTP_Content field, bool deleteReply);
     bool deleteHTTPReply(int handle);
 
-    //MQTT operations
+    // MQTT operations
     bool enableMQTT(const String& server, bool useSecure);
     bool enableMQTT(const String& server, bool useSecure, const String& username, const String& password);
     bool disableMQTT();
@@ -102,6 +102,9 @@ public:
     bool mqttUnsubscribe(const String& topic);
     bool mqttNewDataArrived(const String& topic);
     String mqttGetSubcriptionData(const String& topic);
+
+    // MQTT helpers/wrappers
+    void mqttPollNewData(bool *newDataArrived, const String& topic, unsigned long delay);
 //     int16_t beginDeepSleep(uint16_t sleepTime, bool blocking);
 
 //     int16_t setDHCPEnabled(bool enabled);
@@ -111,6 +114,7 @@ public:
     
 private:
     SoftwareSerial _ESP01UART;
+    unsigned long previousMillis;
     void writeCommandFromPROGMEM(const char* text, int buffersize=8);
     int16_t waitNoOutput(char* values, uint16_t timeOut);
     void rx_empty(void);

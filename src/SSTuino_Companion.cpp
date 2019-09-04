@@ -82,11 +82,13 @@ const char MQTTPUBLISH[] PROGMEM = "mpb ";
 const char FLOWCONTROL[2][2] = { {'\x11', '\x13'}, { '\x12', '\x14' } }; // This maps to the FLOWCTRL_TYPE enum
 
 /******************************************************************************
- * Constructor                                                                *
+ * Constructor and global variables                                           *
  *****************************************************************************/
 
 SSTuino::SSTuino() : _ESP01UART(2, 4) {
 }
+
+unsigned long previousMillis = 0;
 
 /******************************************************************************
  * Public functions                                                           *
@@ -383,6 +385,16 @@ String SSTuino::mqttGetSubcriptionData(const String& topic) {
     _ESP01UART.print(topic);
     _ESP01UART.print(NEWLINE);
     return controlledRecvString(2000, FLOWCTRL_TYPE1);
+}
+
+/* ----------------------------- MQTT  helpers ----------------------------- */
+
+void SSTuino::mqttPollNewData(bool *newDataArrived, const String& topic, unsigned long delay) {
+    unsigned long currentMillis = millis();
+    if (currentMillis - previousMillis >= delay) {
+        previousMillis = currentMillis;
+        *newDataArrived = mqttNewDataArrived(topic);
+    }
 }
 
 /******************************************************************************
