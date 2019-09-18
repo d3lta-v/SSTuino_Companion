@@ -3,7 +3,7 @@
 
   For the SSTuino boards.
 
-  This example sketch publishes to Adafruit IO every 10 seconds using MQTT.
+  This example sketch publishes to Adafruit IO every 7.5 seconds using MQTT.
   This can be a foundation to use for uploading sensor data to the cloud for
   an IoT sensor.
 
@@ -35,9 +35,6 @@ void setup()
     while (true){};
   }
 
-  // Setup random number generator (as dummy data), delete this if you are writing your own code
-  randomSeed(analogRead(0));
-
   wifiConnect();
 
   setupMQTT();
@@ -50,14 +47,12 @@ void setup()
 void loop()
 {
   /*
-    Insert your loop code here and change randNumber to be the data you wish to send
+    Insert your loop code here and change "data" to be the data you wish to send
   */
 
-  double randNumber = (double)random(0, 127);
-  Serial.print("Random number picked: ");
-  Serial.println(randNumber);
-  transmitData(String(randNumber));
-  delay(7500); // 7.5 second interval to prevent flooding Adafruit IO
+  transmitData(String("data"));
+  delay(7500); // you can replace this delay with something longer or shorter,
+               // but 7.5s interval is preferred to prevent flooding Adafruit IO
 }
 
 void wifiConnect(void)
