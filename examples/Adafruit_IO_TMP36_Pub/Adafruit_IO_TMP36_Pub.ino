@@ -19,19 +19,13 @@
 #define IO_KEY        "AIO KEY GOES HERE"
 #define FEED_KEY      "FEED KEY GOES HERE"
 
-#define AREF_VOLTAGE 3.3
-/** WARNING: PLEASE CONNECT 3.3V TO AREF **/
-
 SSTuino wifi = SSTuino();
 
-int tempPin = A1;
+int tempPin = A0;
 
 void setup()
 {
   Serial.begin(9600);
-
-  // Use 3.3V analog reference for better precision with the sensor
-  analogReference(EXTERNAL);
 
   // Open the link between the two devices
   wifi.openLink();
@@ -54,14 +48,11 @@ void setup()
 void loop()
 {
   /*
-    Read the pin repeatedly
+    Read the pin repeatedly and send every 7.5 seconds
   */
-  int rawReading = analogRead(tempPin);
-  float voltage = rawReading * AREF_VOLTAGE;
-  voltage /= 1024.0;
-  float temperatureC = (voltage - 0.5) * 100;
+  double temperature = -40 + 0.488155 * (analogRead(tempPin) - 20);
 
-  transmitData(String(temperatureC));
+  transmitData(String(temperature));
   delay(7500); // 7.5 second interval to prevent flooding Adafruit IO
 }
 
