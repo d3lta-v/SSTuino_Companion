@@ -23,6 +23,10 @@ SSTuino wifi = SSTuino();
 
 String receivedRawData = "    ";
 
+/*		
+  Insert your custom variable declarations here
+*/
+
 void setup()
 {
   Serial.begin(9600);
