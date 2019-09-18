@@ -22,6 +22,10 @@
 
 SSTuino wifi = SSTuino();
 
+/*		
+  Insert your custom variable declarations here
+*/
+
 void setup()
 {
   Serial.begin(9600);
