@@ -34,6 +34,9 @@ void setup()
   // Open the link between the two devices
   wifi.openLink();
 
+  // Reset the Wi-Fi chip to clear any previous settings
+  wifi.reset();
+
   // Verify that the link is ok between the two devices
   if (!wifi.smokeTest()) {
     Serial.println(F("Unable to establish link with Wi-Fi chip. Halting.")); 

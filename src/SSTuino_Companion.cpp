@@ -136,6 +136,11 @@ bool SSTuino::verifyVersion() {
     return false;
 }
 
+void SSTuino::reset() {
+    rx_empty();
+    writeCommandFromPROGMEM(RESET);
+    delay(750);
+}
 
 /* ---------------------------- Wi-Fi functions ---------------------------- */
 
