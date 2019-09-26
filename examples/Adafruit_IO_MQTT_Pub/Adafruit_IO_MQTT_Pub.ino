@@ -14,11 +14,11 @@
 
 #include "SSTuino_Companion.h"
 
-#define SSID          "SSID GOES HERE"
-#define PASSWORD      "WIFI PASSWORD GOES HERE"
-#define IO_USERNAME   "AIO USERNAME GOES HERE"
-#define IO_KEY        "AIO KEY GOES HERE"
-#define FEED_KEY      "FEED KEY GOES HERE"
+#define SSID         "SSID_GOES_HERE"
+#define PASSWORD     "WIFI_PASSWORD_GOES_HERE"
+#define IO_USERNAME  "AIO_USERNAME_GOES_HERE"
+#define IO_KEY       "AIO_KEY_GOES_HERE"
+#define FEED_KEY     "FEED_KEY_GOES_HERE"
 
 SSTuino wifi = SSTuino();
 
